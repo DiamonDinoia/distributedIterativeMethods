@@ -1,7 +1,6 @@
-package it.cnr.isti.pad.hadoop.iterative.v2;
+package it.cnr.isti.pad.hadoop.iterative;
 
-import it.cnr.isti.pad.hadoop.iterative.GenericArrayWritable;
-import org.apache.hadoop.io.DoubleWritable;
+import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 

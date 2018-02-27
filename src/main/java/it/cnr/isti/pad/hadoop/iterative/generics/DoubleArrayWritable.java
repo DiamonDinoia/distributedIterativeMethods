@@ -1,4 +1,4 @@
-package it.cnr.isti.pad.hadoop.iterative;
+package it.cnr.isti.pad.hadoop.iterative.generics;
 
 import org.apache.hadoop.io.DoubleWritable;
 

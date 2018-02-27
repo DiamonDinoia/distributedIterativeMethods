@@ -1,6 +1,4 @@
-package it.cnr.isti.pad.hadoop.iterative.v2;
-
-import org.apache.hadoop.io.Writable;
+package it.cnr.isti.pad.hadoop.iterative.dataStructures;
 
 import java.io.DataInput;
 import java.io.DataOutput;

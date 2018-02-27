@@ -1,4 +1,5 @@
-package it.cnr.isti.pad.hadoop.iterative.v2;
+package it.cnr.isti.pad.hadoop.iterative;
+import it.cnr.isti.pad.hadoop.iterative.dense.DoubleMatrixInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.ArrayWritable;

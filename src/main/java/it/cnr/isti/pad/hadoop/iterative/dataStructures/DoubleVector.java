@@ -1,4 +1,4 @@
-package it.cnr.isti.pad.hadoop.iterative.v2;
+package it.cnr.isti.pad.hadoop.iterative.dataStructures;
 
 import org.apache.hadoop.io.Writable;
 
@@ -10,18 +10,35 @@ public class DoubleVector implements Writable{
 
     private double[] values;
 
+    public DoubleVector(){}
+
     public DoubleVector(double[] values) {
         this.values = values;
     }
 
-    public DoubleVector(){}
-
-    public double[] getValues() {
+    public double[] get() {
         return values;
     }
 
     public void set(double[] values) {
         this.values = values;
+    }
+
+    public double get(int index) {
+        return values[index];
+    }
+
+    public void set(int index, double value) {
+        this.values[index] = value;
+    }
+
+    public double product(double[] vector ) {
+        if (values.length != vector.length) throw new ArithmeticException("Vector size mismatch");
+        double sum = 0.;
+        for (int i = 0; i < vector.length; i++) {
+            sum += (vector[i] * values[i]);
+        }
+        return sum;
     }
 
     @Override

@@ -1,8 +1,8 @@
-package it.cnr.isti.pad.hadoop.iterative.v2;
+package it.cnr.isti.pad.hadoop.iterative.dense;
 
 import com.sun.org.apache.commons.logging.Log;
 import com.sun.org.apache.commons.logging.LogFactory;
-import it.cnr.isti.pad.hadoop.iterative.DoubleArrayWritable;
+import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
