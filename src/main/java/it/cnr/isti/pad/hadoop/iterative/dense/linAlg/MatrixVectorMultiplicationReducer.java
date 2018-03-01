@@ -40,7 +40,6 @@ public class MatrixVectorMultiplicationReducer extends Reducer<LongWritable, Dou
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("b");
         Path path = new Path(filename);
-        System.out.println(path);
         FSDataInputStream inputStream = fs.open(path);
         readSize(inputStream);
         super.setup(context);

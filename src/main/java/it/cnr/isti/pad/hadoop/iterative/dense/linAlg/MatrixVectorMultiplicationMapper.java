@@ -22,26 +22,28 @@ public class MatrixVectorMultiplicationMapper
     private final Matcher headerMatcher = header.matcher("");
     private final Matcher lineMatcher = linePattern.matcher("");
 
-    private double[] b = null;
+    protected double[] b = null;
 
-    private void parseVector(FSDataInputStream inputStream) throws IOException {
+    protected double[] parseVector(double[] vector, FSDataInputStream inputStream) throws IOException {
         Text line = new Text();
         LineReader in = new LineReader(inputStream);
         if (in.readLine(line)==0)
             throw new IOException("Invalid b file");
         headerMatcher.reset(line.toString());
         if(headerMatcher.find()){
-            b = new double[Integer.valueOf(headerMatcher.group())];
+            int size = Integer.valueOf(headerMatcher.group());
+            if(vector==null || vector.length != size) vector = new double[size];
         } else throw new IOException("Invalid b file");
         line.clear();
         int index=0;
         while (in.readLine(line)>0){
             lineMatcher.reset(line.toString());
             while (lineMatcher.find()){
-                b[index++] = Double.valueOf(lineMatcher.group());
+                vector[index++] = Double.valueOf(lineMatcher.group());
             }
         }
-        if(index!=b.length) throw new IOException("invalid b file");
+        if(index!=vector.length) throw new IOException("invalid b file");
+        return vector;
     }
 
     @Override
@@ -49,9 +51,9 @@ public class MatrixVectorMultiplicationMapper
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("b");
         Path path = new Path(filename);
-        System.out.println(path);
         FSDataInputStream inputStream = fs.open(path);
-        parseVector(inputStream);
+        b = parseVector(b, inputStream);
+        fs.close();
         super.setup(context);
     }
 
@@ -59,10 +61,9 @@ public class MatrixVectorMultiplicationMapper
 
     @Override
     protected void map(LongWritable key, DoubleVector value, Context context) throws IOException, InterruptedException {
-        double sum = 0;
-        for (int i = 0; i < b.length; i++) {
-            sum+=(value.get(i)*b[i]);
-        }
+        System.out.println(value);
+        System.out.println(b);
+        double sum = value.product(b);
         out.set(sum);
        context.write(key, out);
     }
