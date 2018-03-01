@@ -1,12 +1,10 @@
-package it.cnr.isti.pad.hadoop.iterative.dense;
+package it.cnr.isti.pad.hadoop.iterative.dense.linAlg;
 
-import com.sun.jersey.core.spi.component.ioc.IoCComponentProcessor;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
-import it.cnr.isti.pad.hadoop.iterative.generics.DoubleArrayWritable;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -17,22 +15,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MatrixVectorMultiplicationMapper
-        extends Mapper<LongWritable, DoubleVector, LongWritable, DoubleVector> {
+        extends Mapper<LongWritable, DoubleVector, LongWritable, DoubleWritable> {
+
+    private final Pattern linePattern = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
+    private final Pattern header = Pattern.compile("(\\d+)");
+    private final Matcher headerMatcher = header.matcher("");
+    private final Matcher lineMatcher = linePattern.matcher("");
 
     private double[] b = null;
 
     private void parseVector(FSDataInputStream inputStream) throws IOException {
         Text line = new Text();
         LineReader in = new LineReader(inputStream);
-        final Pattern linePattern = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
-        final Pattern header = Pattern.compile("(\\d+)");
-        in.readLine(line);
-        final Matcher headerMatcher = header.matcher(in.toString());
+        if (in.readLine(line)==0)
+            throw new IOException("Invalid b file");
+        headerMatcher.reset(line.toString());
         if(headerMatcher.find()){
             b = new double[Integer.valueOf(headerMatcher.group())];
-        } else throw new IOException("Invalid file");
+        } else throw new IOException("Invalid b file");
         line.clear();
-        Matcher lineMatcher = linePattern.matcher("");
         int index=0;
         while (in.readLine(line)>0){
             lineMatcher.reset(line.toString());
@@ -40,22 +41,30 @@ public class MatrixVectorMultiplicationMapper
                 b[index++] = Double.valueOf(lineMatcher.group());
             }
         }
-        if(index!=b.length) throw new IOException("invalid file");
-
+        if(index!=b.length) throw new IOException("invalid b file");
     }
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("b");
-        FSDataInputStream inputStream = fs.open(new Path(filename));
+        Path path = new Path(filename);
+        System.out.println(path);
+        FSDataInputStream inputStream = fs.open(path);
+        parseVector(inputStream);
         super.setup(context);
     }
 
+    private final DoubleWritable out = new DoubleWritable();
+
     @Override
     protected void map(LongWritable key, DoubleVector value, Context context) throws IOException, InterruptedException {
-
-        super.map(key,value,context);
+        double sum = 0;
+        for (int i = 0; i < b.length; i++) {
+            sum+=(value.get(i)*b[i]);
+        }
+        out.set(sum);
+       context.write(key, out);
     }
 
     @Override
