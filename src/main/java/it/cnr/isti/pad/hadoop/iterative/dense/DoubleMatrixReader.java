@@ -22,15 +22,15 @@ public class DoubleMatrixReader
         extends RecordReader<LongWritable, DoubleVector> {
 
     private long start;
-    private long pos;
-    private long end;
-    private LineReader in;
-    private int maxLineLength;
-    private LongWritable key = new LongWritable();
-    private DoubleVector value = new DoubleVector();
-    private static final Log LOG = LogFactory.getLog(DoubleMatrixReader.class);
+    protected long pos;
+    protected long end;
+    protected LineReader in;
+    protected int maxLineLength;
+    protected LongWritable key = new LongWritable();
+    protected DoubleVector value = new DoubleVector();
+    protected static final Log LOG = LogFactory.getLog(DoubleMatrixReader.class);
 
-    private static final String rowMarker = "row";
+    protected static final String rowMarker = "row";
     private String fileName;
 
     public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException {
@@ -86,21 +86,64 @@ public class DoubleMatrixReader
         this.pos = start;
     }
 
-    private Text currentLine = new Text();
-    private int nValues=0;
-    private int index = 0;
+    protected Text currentLine = new Text();
+    protected int nValues=0;
+    protected int index = 0;
 
 
-    private final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)(?:\\s+)(\\d+)");
-    private Matcher headerMatcher = null;
-    private final Pattern line = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
-    private Matcher lineMatcher = null;
+    protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)(?:\\s+)(\\d+)");
+    protected Matcher headerMatcher = null;
+    protected final Pattern line = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
+    protected Matcher lineMatcher = null;
 
+    protected boolean readRow() throws IOException{
 
-    private double[] values;
+        //
+        // Make sure we get at least one record that starts in this Split
+        while (pos < end) {
+            currentLine.clear();
+            // Read first line and store its content to "value"
+            newSize = in.readLine(currentLine, maxLineLength,
+                    Math.max((int) Math.min(
+                            Integer.MAX_VALUE, end - pos),
+                            maxLineLength));
+
+            // No byte read, seems that we reached end of Split
+            // Break and return false (no key / value)
+            if (newSize == 0) {
+                return false;
+            }
+
+            // Line is read, new position is set
+            pos += newSize;
+
+            if (newSize > maxLineLength) {
+                // Line is too long
+                // Try again with position = position + line offset,
+                // i.e. ignore line and go to next one
+                LOG.error("Skipped line of size " +
+                        newSize + " at pos "
+                        + (pos - newSize));
+                return false;
+            }
+
+            if(lineMatcher==null)
+                lineMatcher = line.matcher(currentLine.toString());
+            else lineMatcher.reset(currentLine.toString());
+
+            while (lineMatcher.find()){
+                values[index] = Double.valueOf(lineMatcher.group());
+                index++;
+            }
+        }
+        return true;
+    }
+
+    private int newSize;
+    protected double[] values;
+
     public boolean nextKeyValue() throws IOException {
         nValues=-1;
-        int newSize;
         index = 0;
         //read until reaching the now row marker
         while(pos < end){
@@ -149,45 +192,7 @@ public class DoubleMatrixReader
                 throw new IOException("Invalid file");
             }
         }
-
-        //
-        // Make sure we get at least one record that starts in this Split
-        while (pos < end) {
-            currentLine.clear();
-            // Read first line and store its content to "value"
-            newSize = in.readLine(currentLine, maxLineLength,
-                    Math.max((int) Math.min(
-                            Integer.MAX_VALUE, end - pos),
-                            maxLineLength));
-
-            // No byte read, seems that we reached end of Split
-            // Break and return false (no key / value)
-            if (newSize == 0) {
-                return false;
-            }
-
-            // Line is read, new position is set
-            pos += newSize;
-
-            if (newSize > maxLineLength) {
-                // Line is too long
-                // Try again with position = position + line offset,
-                // i.e. ignore line and go to next one
-                LOG.error("Skipped line of size " +
-                        newSize + " at pos "
-                        + (pos - newSize));
-                return false;
-            }
-
-            if(lineMatcher==null)
-                lineMatcher = line.matcher(currentLine.toString());
-            else lineMatcher.reset(currentLine.toString());
-
-            while (lineMatcher.find()){
-                    values[index] = Double.valueOf(lineMatcher.group());
-                index++;
-            }
-        }
+        if(!readRow()) return false;
         value.set(values);
         return index==nValues;
     }

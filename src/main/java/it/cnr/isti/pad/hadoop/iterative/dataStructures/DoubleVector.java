@@ -32,6 +32,11 @@ public class DoubleVector implements Writable{
         this.values[index] = value;
     }
 
+    public int size(){
+        if (values==null) return 0;
+        return values.length;
+    }
+
     public double product(double[] vector ) {
         if (values.length != vector.length) throw new ArithmeticException("Vector size mismatch");
         double sum = 0.;
@@ -39,6 +44,29 @@ public class DoubleVector implements Writable{
             sum += (vector[i] * values[i]);
         }
         return sum;
+    }
+
+    public double product(DoubleVector vector ) {
+        if (values.length != vector.size()) throw new ArithmeticException("Vector size mismatch");
+        double sum = 0.;
+        for (int i = 0; i < vector.size(); i++) {
+            sum += (vector.get(i) * values[i]);
+        }
+        return sum;
+    }
+
+    public double sum(){
+        double sum = 0;
+        for (double value : values) {
+            sum+=value;
+        }
+        return sum;
+    }
+
+    public void setConst(double constant){
+        for (int i = 0; i < values.length; i++) {
+            values[i]=constant;
+        }
     }
 
     @Override

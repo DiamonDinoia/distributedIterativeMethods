@@ -22,9 +22,9 @@ public class MatrixVectorMultiplicationMapper
     private final Matcher headerMatcher = header.matcher("");
     private final Matcher lineMatcher = linePattern.matcher("");
 
-    protected double[] b = null;
+    protected DoubleVector b = new DoubleVector();
 
-    protected double[] parseVector(double[] vector, FSDataInputStream inputStream) throws IOException {
+    protected void parseVector(DoubleVector vector, FSDataInputStream inputStream) throws IOException {
         Text line = new Text();
         LineReader in = new LineReader(inputStream);
         if (in.readLine(line)==0)
@@ -32,18 +32,17 @@ public class MatrixVectorMultiplicationMapper
         headerMatcher.reset(line.toString());
         if(headerMatcher.find()){
             int size = Integer.valueOf(headerMatcher.group());
-            if(vector==null || vector.length != size) vector = new double[size];
+            if(vector.get()==null || vector.size() != size) vector.set( new double[size]);
         } else throw new IOException("Invalid b file");
         line.clear();
         int index=0;
         while (in.readLine(line)>0){
             lineMatcher.reset(line.toString());
             while (lineMatcher.find()){
-                vector[index++] = Double.valueOf(lineMatcher.group());
+                vector.set(index++, Double.valueOf(lineMatcher.group()));
             }
         }
-        if(index!=vector.length) throw new IOException("invalid b file");
-        return vector;
+        if(index!=vector.size()) throw new IOException("invalid b file");
     }
 
     @Override
@@ -52,7 +51,7 @@ public class MatrixVectorMultiplicationMapper
         String filename = context.getConfiguration().get("b");
         Path path = new Path(filename);
         FSDataInputStream inputStream = fs.open(path);
-        b = parseVector(b, inputStream);
+        parseVector(b, inputStream);
         fs.close();
         super.setup(context);
     }
