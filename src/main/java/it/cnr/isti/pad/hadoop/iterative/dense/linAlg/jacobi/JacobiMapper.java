@@ -1,7 +1,10 @@
 package it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi;
 
+import com.sun.org.apache.commons.logging.Log;
+import com.sun.org.apache.commons.logging.LogFactory;
 import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.MatrixVectorMultiplicationMapper;
+import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -13,19 +16,22 @@ import java.io.IOException;
 public class JacobiMapper extends MatrixVectorMultiplicationMapper {
 
     private final DoubleVector x = new DoubleVector();
+    private static final Log LOG = LogFactory.getLog(JacobiMapper.class);
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
+        int size = context.getConfiguration().getInt("matrixSize",-1);
+        if (size==-1){
+            LOG.error("Invalid matrix size");
+            throw new ConfigurationRuntimeException("Invalid matrix size");
+        }
+        if (x.get()==null || x.size()!=size)
+            x.set(new double[size]);
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("x");
         Path path = new Path(filename);
         FSDataInputStream inputStream = fs.open(path);
-        x.readFields(inputStream);
-        inputStream.close();
-        filename = context.getConfiguration().get("b");
-        path = new Path(filename);
-        inputStream = fs.open(path);
-        parseVector(b,inputStream);
+        x.fromString(inputStream);
         inputStream.close();
         super.setup(context);
     }

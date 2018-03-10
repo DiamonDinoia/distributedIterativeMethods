@@ -1,10 +1,15 @@
 package it.cnr.isti.pad.hadoop.iterative.dataStructures;
 
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.util.LineReader;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DoubleVector implements Writable{
 
@@ -92,5 +97,22 @@ public class DoubleVector implements Writable{
             builder.append(value).append(' ');
         }
         return builder.toString();
+    }
+
+    private final Pattern linePattern = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
+    private final Matcher lineMatcher = linePattern.matcher("");
+    private final Text line = new Text();
+
+    public void fromString(FSDataInputStream inputStream) throws IOException {
+        final LineReader in = new LineReader(inputStream);
+        int index=0;
+        while (in.readLine(line)>0){
+            lineMatcher.reset(line.toString());
+            while (lineMatcher.find()){
+                this.set(index++, Double.valueOf(lineMatcher.group()));
+            }
+            line.clear();
+        }
+        if(index!=this.size()) throw new IOException("invalid vector file");
     }
 }

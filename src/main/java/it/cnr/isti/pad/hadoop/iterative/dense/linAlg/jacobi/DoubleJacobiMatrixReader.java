@@ -1,12 +1,12 @@
 package it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi;
 
+
 import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
 import it.cnr.isti.pad.hadoop.iterative.dense.DoubleMatrixReader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.InvalidJobConfException;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
@@ -15,36 +15,23 @@ import java.io.IOException;
 public class DoubleJacobiMatrixReader
         extends DoubleMatrixReader {
 
-    private DoubleVector errorVector = new DoubleVector();
-    public final static String errorKey = "errorFileName";
-    public final static String errorSize = "errorVectorSize";
+    private DoubleVector error = new DoubleVector();
+    private double threshold;
 
     @Override
     public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException {
-        Configuration job = context.getConfiguration();
-        FileSystem fs =  FileSystem.get(job);
-        String errorName = job.get(errorKey);
-        if(errorName!=null){
-            FSDataInputStream errorIn = fs.open(new Path(errorName));
-            errorVector.readFields(errorIn);
-            errorIn.close();
-        } else {
-            int size = job.getInt(errorSize,-1);
-            if (size==-1){
-                LOG.error("Invalid configuration");
-                throw new InvalidJobConfException("Invalid size error vector");
-            }
-            errorVector.set(new double[size]);
-            errorVector.setConst(1./(double)size);
-        }
-
         super.initialize(inputSplit, context);
+        Configuration job = context.getConfiguration();
+        threshold = job.getFloat("threshold", 0.f);
+        FileSystem fs = FileSystem.get(job);
+        final Path file = new Path( job.get("error"));
+        FSDataInputStream fileIn = fs.open(file);
+        error.readFields(fileIn);
+        fileIn.close();
     }
 
-    @Override
     public boolean nextKeyValue() throws IOException {
-        nValues=-1;
-        int newSize;
+//        nValues=-1;
         index = 0;
         //read until reaching the now row marker
         while(pos < end){
@@ -66,7 +53,7 @@ public class DoubleJacobiMatrixReader
                 // Line is too long
                 // Try again with position = position + line offset,
                 // i.e. ignore line and go to next one
-                LOG.error("Skipped line of size " +
+                LOG.error(fileName + " Skipped line of size " +
                         newSize + " at pos "
                         + (pos - newSize));
                 return false;
@@ -78,27 +65,27 @@ public class DoubleJacobiMatrixReader
             if(!headerMatcher.find()) continue;
 
             if(!headerMatcher.group(1).equals(rowMarker)){
-                LOG.error("Invalid file");
-                throw new IOException("Invalid file");
+                LOG.error("Invalid file " + fileName);
+                throw new IOException("Invalid file " + fileName);
             }
             try{
+
                 key.set(Long.valueOf(headerMatcher.group(2)));
-                if(errorVector.get((int)key.get()) < 0.){
+                if(error.get((int)key.get()) <= threshold)
                     return false;
-                }
-                nValues = Integer.valueOf(headerMatcher.group(3));
+//                nValues = Integer.valueOf(headerMatcher.group(3));
                 if(values==null || values.length!=nValues)
                     values = new double[nValues];
                 break;
             } catch (NumberFormatException _){
                 //checking file correctness
-                LOG.error("Invalid file");
-                throw new IOException("Invalid file");
+                LOG.error("Invalid file " + fileName);
+                throw new IOException("Invalid file" + fileName);
             }
         }
         if(!readRow()) return false;
-
         value.set(values);
         return index==nValues;
     }
+
 }

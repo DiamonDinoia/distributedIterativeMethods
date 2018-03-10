@@ -1,6 +1,9 @@
 package it.cnr.isti.pad.hadoop.iterative.dense.linAlg;
 
+import com.sun.org.apache.commons.logging.Log;
+import com.sun.org.apache.commons.logging.LogFactory;
 import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
+import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -17,41 +20,24 @@ import java.util.regex.Pattern;
 public class MatrixVectorMultiplicationMapper
         extends Mapper<LongWritable, DoubleVector, LongWritable, DoubleWritable> {
 
-    private final Pattern linePattern = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
-    private final Pattern header = Pattern.compile("(\\d+)");
-    private final Matcher headerMatcher = header.matcher("");
-    private final Matcher lineMatcher = linePattern.matcher("");
+    private static final Log LOG = LogFactory.getLog(MatrixVectorMultiplicationMapper.class);
 
     protected DoubleVector b = new DoubleVector();
 
-    protected void parseVector(DoubleVector vector, FSDataInputStream inputStream) throws IOException {
-        Text line = new Text();
-        LineReader in = new LineReader(inputStream);
-        if (in.readLine(line)==0)
-            throw new IOException("Invalid b file");
-        headerMatcher.reset(line.toString());
-        if(headerMatcher.find()){
-            int size = Integer.valueOf(headerMatcher.group());
-            if(vector.get()==null || vector.size() != size) vector.set( new double[size]);
-        } else throw new IOException("Invalid b file");
-        line.clear();
-        int index=0;
-        while (in.readLine(line)>0){
-            lineMatcher.reset(line.toString());
-            while (lineMatcher.find()){
-                vector.set(index++, Double.valueOf(lineMatcher.group()));
-            }
-        }
-        if(index!=vector.size()) throw new IOException("invalid b file");
-    }
-
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
+        int size = context.getConfiguration().getInt("matrixSize",-1);
+        if (size==-1){
+            LOG.error("Invalid matrix size");
+            throw new ConfigurationRuntimeException("Invalid matrix size");
+        }
+        if (b.get()==null || b.size()!=size)
+            b.set(new double[size]);
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("b");
         Path path = new Path(filename);
         FSDataInputStream inputStream = fs.open(path);
-        parseVector(b, inputStream);
+        b.fromString(inputStream);
         fs.close();
         super.setup(context);
     }
