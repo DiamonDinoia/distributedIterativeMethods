@@ -1,6 +1,5 @@
 package it.cnr.isti.pad.hadoop.iterative;
 import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
-import it.cnr.isti.pad.hadoop.iterative.dense.DoubleMatrixInputFormat;
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.DoubleJacobiMatrixInputFormat;
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.JacobiMapper;
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.JacobiReducer;
@@ -10,9 +9,13 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
 
@@ -22,7 +25,7 @@ public class Jacobi {
     private static final String error = "error";
     private static final String x = "x";
     private static final String matrixSize = "matrixSize";
-    private static final String threshold = "threashold";
+    private static final String threshold = "threshold";
 
     private static final float tolerance = 0.0000000000001f;
 
@@ -35,7 +38,6 @@ public class Jacobi {
         conf.setFloat(threshold,tolerance);
         Path output =new Path(args[1]);
         FileSystem hdfs = FileSystem.get(conf);
-
 //        DoubleVector solution = new DoubleVector(new double[]{0.6, 2.27272, -1.1, 1.875});
         DoubleVector solution = new DoubleVector(new double[]{0.0, 0., 0., 0.});
         FSDataOutputStream out =  hdfs.create(new Path(x));
@@ -51,7 +53,10 @@ public class Jacobi {
         }
         Job job = new Job(conf, "Matrix");
 
-
+        job.setOutputFormatClass(TextOutputFormat.class);
+        LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
+        MultipleOutputs.addNamedOutput(job, "x", TextOutputFormat.class,
+                NullWritable.class, DoubleVector.class);
         job.setJarByClass(Jacobi.class);
 
         job.setInputFormatClass(DoubleJacobiMatrixInputFormat.class);

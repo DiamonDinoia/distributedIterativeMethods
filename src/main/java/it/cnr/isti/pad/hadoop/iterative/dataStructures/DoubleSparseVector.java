@@ -26,6 +26,22 @@ public class DoubleSparseVector extends DoubleVector{
         return size;
     }
 
+    public int nonZeros(){
+        return values.size();
+    }
+
+//    @Override
+//    public String toString() {
+//        StringBuilder builder = new StringBuilder();
+//        Double out;
+//        int lastIndex = 0;
+//        for (Map.Entry<Integer, Double> entry : values.entrySet()) {
+//            if (entry.getKey()!=lastIndex){
+//
+//            }
+//        }
+//    }
+
     @Override
     public void write(DataOutput out) throws IOException {
         out.writeInt(size);

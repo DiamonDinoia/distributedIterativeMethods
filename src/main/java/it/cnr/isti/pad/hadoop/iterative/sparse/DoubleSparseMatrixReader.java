@@ -1,36 +1,49 @@
-package it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi;
+package it.cnr.isti.pad.hadoop.iterative.sparse;
 
-
+import com.sun.org.apache.commons.logging.Log;
+import com.sun.org.apache.commons.logging.LogFactory;
+import it.cnr.isti.pad.hadoop.iterative.MatrixReader;
+import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleSparseVector;
 import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
-import it.cnr.isti.pad.hadoop.iterative.dense.DoubleMatrixReader;
+import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.util.LineReader;
 
+import javax.naming.ConfigurationException;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class DoubleJacobiMatrixReader
-        extends DoubleMatrixReader {
+public class DoubleSparseMatrixReader
+        extends MatrixReader<LongWritable, DoubleVector> {
 
-    private DoubleVector error = new DoubleVector();
-    private double threshold;
 
-    @Override
-    public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException {
-        super.initialize(inputSplit, context);
-        Configuration job = context.getConfiguration();
-        threshold = job.getFloat("threshold", 0.f);
-        FileSystem fs = FileSystem.get(job);
-        final Path file = new Path( job.get("error"));
-        FSDataInputStream fileIn = fs.open(file);
-        error.readFields(fileIn);
-        fileIn.close();
-    }
+    protected LongWritable key = new LongWritable();
+    protected DoubleSparseVector value = new DoubleSparseVector();
+    protected static final Log LOG = LogFactory.getLog(it.cnr.isti.pad.hadoop.iterative.dense.DoubleMatrixReader.class);
+
+    protected static final String rowMarker = "row";
+
+
+
+
+    protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
+    protected Matcher headerMatcher = null;
+
+
+
+
 
     public boolean nextKeyValue() throws IOException {
+//        nValues=-1;
         index = 0;
         //read until reaching the now row marker
         while(pos < end){
@@ -68,10 +81,7 @@ public class DoubleJacobiMatrixReader
                 throw new IOException("Invalid file " + fileName);
             }
             try{
-
                 key.set(Long.valueOf(headerMatcher.group(2)));
-                if(error.get((int)key.get()) <= threshold)
-                    return false;
 //                nValues = Integer.valueOf(headerMatcher.group(3));
                 if(values==null || values.length!=nValues)
                     values = new double[nValues];
@@ -87,4 +97,19 @@ public class DoubleJacobiMatrixReader
         return index==nValues;
     }
 
+    public LongWritable getCurrentKey() {
+        return key;
+    }
+
+    public DoubleVector getCurrentValue() {
+        return value;
+    }
+
+    public float getProgress() {
+        return nValues==0 ? 0 : index*100/nValues;
+    }
+
+    public void close() throws IOException {
+        in.close();
+    }
 }
