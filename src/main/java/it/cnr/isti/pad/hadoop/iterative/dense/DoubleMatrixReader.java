@@ -30,6 +30,7 @@ public class DoubleMatrixReader
 
     protected static final String rowMarker = "row";
 
+
     protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
     protected Matcher headerMatcher = null;
 

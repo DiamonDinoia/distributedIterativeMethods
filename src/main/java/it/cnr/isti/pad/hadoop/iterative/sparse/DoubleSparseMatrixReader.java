@@ -16,6 +16,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
+import org.hsqldb.Record;
 
 import javax.naming.ConfigurationException;
 import java.io.IOException;
@@ -25,21 +26,16 @@ import java.util.regex.Pattern;
 public class DoubleSparseMatrixReader
         extends MatrixReader<LongWritable, DoubleVector> {
 
+    protected static final Log LOG = LogFactory.getLog(it.cnr.isti.pad.hadoop.iterative.dense.DoubleMatrixReader.class);
 
     protected LongWritable key = new LongWritable();
     protected DoubleSparseVector value = new DoubleSparseVector();
-    protected static final Log LOG = LogFactory.getLog(it.cnr.isti.pad.hadoop.iterative.dense.DoubleMatrixReader.class);
 
     protected static final String rowMarker = "row";
 
 
-
-
     protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
     protected Matcher headerMatcher = null;
-
-
-
 
 
     public boolean nextKeyValue() throws IOException {
