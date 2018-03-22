@@ -5,6 +5,7 @@ import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.DoubleJacobiMatrixInputFormat;
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.JacobiMapper;
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.JacobiReducer;
+import it.cnr.isti.pad.hadoop.iterative.utils.MatrixGenerator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
