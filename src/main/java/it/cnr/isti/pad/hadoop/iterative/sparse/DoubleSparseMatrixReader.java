@@ -1,46 +1,34 @@
-package it.cnr.isti.pad.hadoop.iterative.dense;
+package it.cnr.isti.pad.hadoop.iterative.sparse;
 
 import com.sun.org.apache.commons.logging.Log;
 import com.sun.org.apache.commons.logging.LogFactory;
-import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
+import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleSparseVector;
 import it.cnr.isti.pad.hadoop.iterative.generics.MatrixReader;
-import org.apache.commons.configuration.ConfigurationRuntimeException;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.apache.hadoop.util.LineReader;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 
-import javax.naming.ConfigurationException;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DoubleMatrixReader
-        extends MatrixReader<LongWritable, DoubleVector> {
+public class DoubleSparseMatrixReader  extends MatrixReader<LongWritable, DoubleSparseVector> {
+    private static final Log LOG = LogFactory.getLog(DoubleSparseMatrixReader.class);
 
-    protected static final Log LOG = LogFactory.getLog(DoubleMatrixReader.class);
+    private LongWritable key = new LongWritable();
+    private DoubleSparseVector value = new DoubleSparseVector();
 
-    protected static final String rowMarker = "row";
+    private static final String rowMarker = "row";
 
-    protected LongWritable key = new LongWritable();
-    protected DoubleVector value = new DoubleVector();
+    private Text currentLine = new Text();
+    private int index = 0;
 
-    protected Text currentLine = new Text();
-    protected int index = 0;
-
-    protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
-//    protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)(?:\\s+)(\\d+)");
-    protected Matcher headerMatcher = null;
+    private final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
+    //    protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)(?:\\s+)(\\d+)");
+    private Matcher headerMatcher = null;
     private final Pattern line = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
     private Matcher lineMatcher = null;
 
-    protected boolean readRow() throws IOException{
+    private boolean readRow() throws IOException{
 
         //
         // Make sure we get at least one record that starts in this Split
@@ -76,21 +64,24 @@ public class DoubleMatrixReader
             else lineMatcher.reset(currentLine.toString());
 
             while (lineMatcher.find()){
-                values[index] = Double.valueOf(lineMatcher.group());
-                index++;
+                double val = Double.valueOf(lineMatcher.group());
+                if (val==0.) {
+                    index += Integer.valueOf(lineMatcher.group());
+                } else {
+                    value.insert(index++,val);
+                }
             }
         }
         return true;
     }
 
-    protected int newSize;
-    protected double[] values;
+    private int newSize;
 
     public boolean nextKeyValue() throws IOException {
 //        nValues=-1;
         index = 0;
         //read until reaching the now row marker
-        while(pos < end){
+        while (pos < end) {
             currentLine.clear();
             // Read first line and store its content to "currentLine"
             newSize = in.readLine(currentLine, maxLineLength,
@@ -114,38 +105,33 @@ public class DoubleMatrixReader
                         + (pos - newSize));
                 return false;
             }
-            if(headerMatcher==null)
+            if (headerMatcher == null)
                 headerMatcher = header.matcher(currentLine.toString());
             else headerMatcher.reset(currentLine.toString());
 
-            if(!headerMatcher.find()) continue;
+            if (!headerMatcher.find()) continue;
 
-            if(!headerMatcher.group(1).equals(rowMarker)){
+            if (!headerMatcher.group(1).equals(rowMarker)) {
                 LOG.error("Invalid file " + fileName);
                 throw new IOException("Invalid file " + fileName);
             }
-            try{
+            try {
                 key.set(Long.valueOf(headerMatcher.group(2)));
-//                nValues = Integer.valueOf(headerMatcher.group(3));
-                if(values==null || values.length!=nValues)
-                    values = new double[nValues];
                 break;
-            } catch (NumberFormatException _){
+            } catch (NumberFormatException _) {
                 //checking file correctness
                 LOG.error("Invalid file " + fileName);
                 throw new IOException("Invalid file" + fileName);
             }
         }
-        if(!readRow()) return false;
-        value.set(values);
-        return index==nValues;
+        return readRow() && index == nValues;
     }
 
     public LongWritable getCurrentKey() {
         return key;
     }
 
-    public DoubleVector getCurrentValue() {
+    public DoubleSparseVector getCurrentValue() {
         return value;
     }
 

@@ -71,7 +71,7 @@ public class DoubleJacobiMatrixReader
             try{
 
                 key.set(Long.valueOf(headerMatcher.group(2)));
-                if(error.get((int)key.get()) <= threshold)
+                if(error.get((int)key.get()) < threshold)
                     return false;
 //                nValues = Integer.valueOf(headerMatcher.group(3));
                 if(values==null || values.length!=nValues)

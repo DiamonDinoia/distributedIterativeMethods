@@ -44,10 +44,11 @@ public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
 
     @Override
     protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
-        super.reduce(key, values, context);
+//        super.reduce(key, values, context);
         int index = (int) key.get();
         for (DoubleWritable value : values) {
-            errorVector.set(index, Math.abs(value.get()- oldX.get(index)));
+            x.set((int)key.get(), value.get());
+            errorVector.set(index, Math.abs(value.get() - oldX.get(index)));
         }
     }
 

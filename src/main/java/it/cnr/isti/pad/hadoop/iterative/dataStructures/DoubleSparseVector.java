@@ -1,29 +1,25 @@
 package it.cnr.isti.pad.hadoop.iterative.dataStructures;
 
+import it.cnr.isti.pad.hadoop.iterative.generics.SparseVector;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DoubleSparseVector extends DoubleVector{
-
-    private Map<Integer,Double> values;
-    private int size;
+public class DoubleSparseVector extends SparseVector<Double> {
 
     public DoubleSparseVector(int size, int nonZeros) {
-        this.values = new HashMap<>(nonZeros);
-        this.size=size;
+        super(size, nonZeros);
     }
 
     public DoubleSparseVector(int size) {
-        this.size = size;
+        super(size);
     }
 
-    public DoubleSparseVector(){}
-
-    public int size(){
-        return size;
+    public DoubleSparseVector() {
+        super();
     }
 
     @Override
@@ -39,8 +35,8 @@ public class DoubleSparseVector extends DoubleVector{
     @Override
     public void readFields(DataInput in) throws IOException {
         size = in.readInt();
-        values = new HashMap<>(in.readInt());
-        for (int i = 0; i < values.size(); i++) {
+        int nonZeros = in.readInt();
+        for (int i = 0; i < nonZeros; i++) {
             values.put(in.readInt(),in.readDouble());
         }
     }
