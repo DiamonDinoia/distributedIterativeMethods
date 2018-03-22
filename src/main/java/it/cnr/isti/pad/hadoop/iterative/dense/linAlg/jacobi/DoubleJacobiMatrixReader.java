@@ -31,7 +31,6 @@ public class DoubleJacobiMatrixReader
     }
 
     public boolean nextKeyValue() throws IOException {
-//        nValues=-1;
         index = 0;
         //read until reaching the now row marker
         while(pos < end){

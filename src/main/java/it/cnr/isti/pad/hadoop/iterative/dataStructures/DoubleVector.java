@@ -60,14 +60,6 @@ public class DoubleVector implements Writable{
         return sum;
     }
 
-    public double sum(){
-        double sum = 0;
-        for (double value : values) {
-            sum+=value;
-        }
-        return sum;
-    }
-
     public void setConst(double constant){
         for (int i = 0; i < values.length; i++) {
             values[i]=constant;

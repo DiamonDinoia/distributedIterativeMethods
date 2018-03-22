@@ -21,6 +21,7 @@ public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
 
     private static final Log LOG = LogFactory.getLog(JacobiReducer.class);
 
+
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
         int size = context.getConfiguration().getInt("matrixSize",-1);
