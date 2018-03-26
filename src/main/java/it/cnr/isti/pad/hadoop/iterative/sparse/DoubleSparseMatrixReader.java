@@ -6,6 +6,8 @@ import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleSparseVector;
 import it.cnr.isti.pad.hadoop.iterative.generics.MatrixReader;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -23,10 +25,15 @@ public class DoubleSparseMatrixReader  extends MatrixReader<LongWritable, Double
     private int index = 0;
 
     private final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
-    //    protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)(?:\\s+)(\\d+)");
     private Matcher headerMatcher = null;
-    private final Pattern line = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
+    private final Pattern line = Pattern.compile("(-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*");
     private Matcher lineMatcher = null;
+
+    @Override
+    public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException {
+        super.initialize(inputSplit, context);
+        value.setSize(nValues);
+    }
 
     private boolean readRow() throws IOException{
 
@@ -66,7 +73,9 @@ public class DoubleSparseMatrixReader  extends MatrixReader<LongWritable, Double
             while (lineMatcher.find()){
                 double val = Double.valueOf(lineMatcher.group());
                 if (val==0.) {
-                    index += Integer.valueOf(lineMatcher.group());
+                    if (!lineMatcher.find()) throw new IOException(fileName + " invalid");
+                    double occurrences = Double.valueOf(lineMatcher.group());
+                    index += (int) occurrences;
                 } else {
                     value.insert(index++,val);
                 }

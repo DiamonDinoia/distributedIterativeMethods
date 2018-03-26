@@ -1,12 +1,17 @@
 package it.cnr.isti.pad.hadoop.iterative.dataStructures;
 
 import it.cnr.isti.pad.hadoop.iterative.generics.SparseVector;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.util.LineReader;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DoubleSparseVector extends SparseVector<Double> {
 
@@ -26,17 +31,6 @@ public class DoubleSparseVector extends SparseVector<Double> {
         return values.size();
     }
 
-//    @Override
-//    public String toString() {
-//        StringBuilder builder = new StringBuilder();
-//        Double out;
-//        int lastIndex = 0;
-//        for (Map.Entry<Integer, Double> entry : values.entrySet()) {
-//            if (entry.getKey()!=lastIndex){
-//
-//            }
-//        }
-//    }
 
     @Override
     public void write(DataOutput out) throws IOException {
@@ -55,5 +49,27 @@ public class DoubleSparseVector extends SparseVector<Double> {
         for (int i = 0; i < nonZeros; i++) {
             values.put(in.readInt(),in.readDouble());
         }
+    }
+    private static final Pattern linePattern = Pattern.compile("(-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*");
+    private final  Matcher lineMatcher = linePattern.matcher("");
+    private final Text line = new Text();
+
+
+    public void fromString(FSDataInputStream inputStream, int size) throws IOException{
+        final LineReader in = new LineReader(inputStream);
+        int index=0;
+        while (in.readLine(line)>0) {
+            lineMatcher.reset(line.toString());
+            while (lineMatcher.find()) {
+                double val = Double.valueOf(lineMatcher.group());
+                if (val == 0.) {
+                    if (!lineMatcher.find()) throw new IOException("invalid vector file");
+                    double occurrences = Double.valueOf(lineMatcher.group());
+                    index += (int) occurrences;
+                } else values.put(index++, val);
+            }
+            line.clear();
+        }
+        if(index!=this.size()) throw new IOException("invalid vector file");
     }
 }

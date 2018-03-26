@@ -28,6 +28,10 @@ public abstract class SparseVector<T extends Number> implements Writable{
         return size;
     }
 
+    public void setSize(int size) {
+        this.size = size;
+    }
+
     public T insert(int index, T value){
         return values.put(index, value);
     }
@@ -40,6 +44,8 @@ public abstract class SparseVector<T extends Number> implements Writable{
     public String toString() {
         if (size<0) throw new InvalidStateException("Size unknown");
         final StringBuilder builder = new StringBuilder();
+        if(values.size()==0)
+           return builder.append(0.).append(' ').append(size).toString();
         int current = 0;
         for (Map.Entry<Integer, T> entry : values.entrySet()) {
             if (current != entry.getKey()) {
@@ -55,9 +61,7 @@ public abstract class SparseVector<T extends Number> implements Writable{
         if(current!=size){
             builder.append(.0).append(' ').append(size-current);
         }
-        if(values.size()==0){
-            builder.append(0.).append(' ').append(size);
-        }
         return builder.toString();
     }
+
 }

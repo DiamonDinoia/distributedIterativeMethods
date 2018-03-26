@@ -50,7 +50,7 @@ public class MatrixVectorMultiplicationMapper
         System.out.println(b);
         double sum = value.product(b);
         out.set(sum);
-       context.write(key, out);
+        context.write(key, out);
     }
 
     @Override

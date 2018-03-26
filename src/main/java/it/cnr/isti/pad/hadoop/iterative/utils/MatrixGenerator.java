@@ -16,7 +16,6 @@ public class MatrixGenerator {
         this.random = new Random(42);
     }
 
-
     public DoubleVector generateVector(int size, int index){
         final double[] values = new double[size];
         double sum = 0.;
@@ -37,7 +36,7 @@ public class MatrixGenerator {
     }
 
     public DoubleSparseVector generateSparseVector(int size, double threshold, int index){
-        final DoubleSparseVector sparseVector = new DoubleSparseVector();
+        final DoubleSparseVector sparseVector = new DoubleSparseVector(size);
         double sum = 0.;
         for (int i = 0; i < size; i++) {
             if (random.nextDouble()<threshold){
