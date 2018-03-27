@@ -6,6 +6,8 @@ import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.DoubleJacobiMatrixIn
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.JacobiMapper;
 import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.JacobiReducer;
 import it.cnr.isti.pad.hadoop.iterative.sparse.DoubleSparseMatrixInputFormat;
+import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.SparseMatrixVectorMultiplicationMapper;
+import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.SparseMatrixVectorMultiplicationReducer;
 import it.cnr.isti.pad.hadoop.iterative.utils.MatrixGenerator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -14,6 +16,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -64,14 +67,14 @@ public class SparseJacobi {
         conf.set("b", b);
         conf.set("error", error);
         conf.set("x",x);
-        conf.setInt(matrixSize,16);
+        conf.setInt(matrixSize,4);
         conf.setFloat(threshold, tolerance);
         Path output = new Path(args[1]);
         FileSystem hdfs = FileSystem.get(conf);
 
         generate_input(hdfs,16);
-//        exit(0);
-        // delete existing directory
+
+        // delete existing output directory
         if (hdfs.exists(output)) {
             hdfs.delete(output, true);
         }
@@ -83,14 +86,13 @@ public class SparseJacobi {
 
 //        job.setMapperClass(Mapper.class);
 
-//        job.setOutputKeyClass(LongWritable.class);
-//        job.setOutputValueClass(DoubleWritable.class);
+        job.setOutputKeyClass(LongWritable.class);
+        job.setOutputValueClass(DoubleWritable.class);
 
-//        job.setMapperClass(JacobiMapper.class);
-//        job.setReducerClass(JacobiReducer.class);
+        job.setMapperClass(SparseMatrixVectorMultiplicationMapper.class);
+        job.setReducerClass(SparseMatrixVectorMultiplicationReducer.class);
 
-
-        job.setNumReduceTasks(0);
+        job.setNumReduceTasks(1);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, output);

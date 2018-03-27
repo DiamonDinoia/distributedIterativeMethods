@@ -32,12 +32,17 @@ public abstract class SparseVector<T extends Number> implements Writable{
         this.size = size;
     }
 
+    public void reset(){
+        size=-1;
+        values.clear();
+    }
+
     public T insert(int index, T value){
         return values.put(index, value);
     }
 
     public T get(int index){
-        return values.get(index);
+        return values.get(index)!=null ? values.get(index) : (T) new Double(0.);
     }
 
     @Override
@@ -63,5 +68,6 @@ public abstract class SparseVector<T extends Number> implements Writable{
         }
         return builder.toString();
     }
+
 
 }
