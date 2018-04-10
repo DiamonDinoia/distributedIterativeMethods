@@ -1,9 +1,9 @@
-package it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi;
+package it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.jacobi;
 
 import com.sun.org.apache.commons.logging.Log;
 import com.sun.org.apache.commons.logging.LogFactory;
-import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
-import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.MatrixVectorMultiplicationReducer;
+import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleSparseVector;
+import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.SparseMatrixVectorMultiplicationReducer;
 import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -11,16 +11,15 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 
-public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
+public class SparseJacobiReducer  extends SparseMatrixVectorMultiplicationReducer{
+    private DoubleSparseVector errorVector = new DoubleSparseVector();
+    private DoubleSparseVector oldX = new DoubleSparseVector();
 
-    private DoubleVector errorVector = new DoubleVector();
-    private DoubleVector oldX = new DoubleVector();
-
-    private static final Log LOG = LogFactory.getLog(JacobiReducer.class);
-
+    private static final Log LOG = LogFactory.getLog(SparseJacobiReducer.class);
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
@@ -29,16 +28,13 @@ public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
             LOG.error("Invalid matrix size");
             throw new ConfigurationRuntimeException("Invalid matrix size");
         }
-        if (oldX.get()==null || oldX.size()!=size)
-            oldX.set(new double[size]);
-
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("x");
         Path path = new Path(filename);
         FSDataInputStream inputStream = fs.open(path);
         oldX.fromString(inputStream);
-        x.set(oldX.get().clone());
-        errorVector.set(new double[size]);
+        x.set(oldX);
+        errorVector.setSize(size);
         fs.close();
     }
 
@@ -62,3 +58,4 @@ public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
         outputStream.close();
     }
 }
+

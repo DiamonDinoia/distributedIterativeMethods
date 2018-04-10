@@ -8,6 +8,8 @@ import it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi.JacobiReducer;
 import it.cnr.isti.pad.hadoop.iterative.sparse.DoubleSparseMatrixInputFormat;
 import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.SparseMatrixVectorMultiplicationMapper;
 import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.SparseMatrixVectorMultiplicationReducer;
+import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.jacobi.SparseJacobiMapper;
+import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.jacobi.SparseJacobiReducer;
 import it.cnr.isti.pad.hadoop.iterative.utils.MatrixGenerator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -84,13 +86,12 @@ public class SparseJacobi {
 
         job.setInputFormatClass(DoubleSparseMatrixInputFormat.class);
 
-//        job.setMapperClass(Mapper.class);
 
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(DoubleWritable.class);
 
-        job.setMapperClass(SparseMatrixVectorMultiplicationMapper.class);
-        job.setReducerClass(SparseMatrixVectorMultiplicationReducer.class);
+        job.setMapperClass(SparseJacobiMapper.class);
+        job.setReducerClass(SparseJacobiReducer.class);
 
         job.setNumReduceTasks(1);
 

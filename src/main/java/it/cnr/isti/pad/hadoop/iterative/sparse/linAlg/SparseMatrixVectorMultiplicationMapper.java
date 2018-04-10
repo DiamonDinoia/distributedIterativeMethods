@@ -19,7 +19,7 @@ public class SparseMatrixVectorMultiplicationMapper extends Mapper<LongWritable,
 
     private static final Log LOG = LogFactory.getLog(SparseMatrixVectorMultiplicationMapper.class);
 
-    private final DoubleSparseVector b = new DoubleSparseVector();
+    protected final DoubleSparseVector b = new DoubleSparseVector();
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
@@ -33,7 +33,7 @@ public class SparseMatrixVectorMultiplicationMapper extends Mapper<LongWritable,
         fs.close();
     }
 
-    final  DoubleWritable out = new DoubleWritable();
+    protected final DoubleWritable out = new DoubleWritable();
 
     @Override
     protected void map(LongWritable key, DoubleSparseVector value, Context context) throws IOException, InterruptedException {
