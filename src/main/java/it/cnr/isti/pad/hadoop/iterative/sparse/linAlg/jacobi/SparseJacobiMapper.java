@@ -29,6 +29,7 @@ public class SparseJacobiMapper extends SparseMatrixVectorMultiplicationMapper {
         String filename = context.getConfiguration().get("x");
         Path path = new Path(filename);
         FSDataInputStream inputStream = fs.open(path);
+        x.setSize(size);
         x.fromString(inputStream);
         inputStream.close();
         super.setup(context);
@@ -41,6 +42,7 @@ public class SparseJacobiMapper extends SparseMatrixVectorMultiplicationMapper {
         sum = b.get((int) key.get()) - sum;
         sum/=row.get((int)(key.get()));
         out.set(sum);
-        context.write(key, out);
+        if (sum!=0.)
+            context.write(key, out);
     }
 }

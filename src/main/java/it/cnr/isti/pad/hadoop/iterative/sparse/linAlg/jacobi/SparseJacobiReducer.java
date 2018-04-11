@@ -30,6 +30,7 @@ public class SparseJacobiReducer  extends SparseMatrixVectorMultiplicationReduce
         }
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("x");
+        oldX.setSize(size);
         Path path = new Path(filename);
         FSDataInputStream inputStream = fs.open(path);
         oldX.fromString(inputStream);
@@ -42,7 +43,8 @@ public class SparseJacobiReducer  extends SparseMatrixVectorMultiplicationReduce
     protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
         int index = (int) key.get();
         for (DoubleWritable value : values) {
-            x.set((int)key.get(), value.get());
+            if (value.get()!=0.)
+                x.set((int)key.get(), value.get());
             errorVector.set(index, Math.abs(value.get() - oldX.get(index)));
         }
     }

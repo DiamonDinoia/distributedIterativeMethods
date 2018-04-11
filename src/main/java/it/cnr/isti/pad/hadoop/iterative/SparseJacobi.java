@@ -40,7 +40,7 @@ public class SparseJacobi {
     private static void generate_input(FileSystem hdfs, int size) throws IOException{
         MatrixGenerator generator = new MatrixGenerator();
         for (int i = 0; i < size; i++) {
-            final DoubleSparseVector test = generator.generateSparseVector(size, 0.5, 0);
+            final DoubleSparseVector test = generator.generateSparseVector(size, 0.5, i);
             final Path testOut = new Path("./input/" + 0 + i);
             final FSDataOutputStream outputStream = hdfs.create(testOut,true);
             outputStream.writeBytes("row " + i + '\n');
@@ -48,7 +48,7 @@ public class SparseJacobi {
             outputStream.close();
         }
         {
-            final DoubleSparseVector test = generator.generateSparseVector(size, 0.5, 0);
+            final DoubleSparseVector test = generator.generateSparseVector(size, 0.5);
             final Path testOut = new Path("b");
             final FSDataOutputStream outputStream = hdfs.create(testOut, true);
             outputStream.writeBytes(test.toString());
@@ -69,7 +69,7 @@ public class SparseJacobi {
         conf.set("b", b);
         conf.set("error", error);
         conf.set("x",x);
-        conf.setInt(matrixSize,4);
+        conf.setInt(matrixSize,16);
         conf.setFloat(threshold, tolerance);
         Path output = new Path(args[1]);
         FileSystem hdfs = FileSystem.get(conf);

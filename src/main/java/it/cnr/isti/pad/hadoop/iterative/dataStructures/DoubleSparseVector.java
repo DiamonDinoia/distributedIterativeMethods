@@ -79,6 +79,7 @@ public class DoubleSparseVector extends SparseVector<Double> {
             }
             line.clear();
         }
-        if(index!=this.size()) throw new IOException("invalid vector file");
+        if(index!=this.size())
+            throw new IOException("invalid vector file " + index + ' ' + size);
     }
 }

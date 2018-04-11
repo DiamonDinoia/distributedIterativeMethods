@@ -39,6 +39,7 @@ public class SparseMatrixVectorMultiplicationMapper extends Mapper<LongWritable,
     protected void map(LongWritable key, DoubleSparseVector value, Context context) throws IOException, InterruptedException {
         double sum = value.product(b);
         out.set(sum);
-        context.write(key, out);
+        if (sum!=0.)
+            context.write(key, out);
     }
 }
