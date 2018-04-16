@@ -12,8 +12,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * This class implements a sparse vector. The non zero values are stored within an HashMap
+ */
 public class DoubleSparseVector extends SparseVector<Double> {
-
+    /**
+     * Initialize the vector.
+     * @param size vector dimension
+     * @param nonZeros number of no zero elements if known
+     */
     public DoubleSparseVector(int size, int nonZeros) {
         super(size, nonZeros);
     }
@@ -22,14 +29,25 @@ public class DoubleSparseVector extends SparseVector<Double> {
         super(size);
     }
 
+    /**
+     * Size must be specified subsequently otherwise it throws an error
+     */
     public DoubleSparseVector() {
         super();
     }
 
+    /**
+     *
+     * @return the number of non zero elements of the vector
+     */
     public int nonZeros(){
         return values.size();
     }
 
+    /**
+     * @param vector sparse vector to multiply
+     * @return Scalar product between two vectors
+     */
     public double product(DoubleSparseVector vector){
         double sum = .0;
         if (values.isEmpty()) return sum;
@@ -39,6 +57,11 @@ public class DoubleSparseVector extends SparseVector<Double> {
         return sum;
     }
 
+    /**
+     * Serialize the vector into a DataOutput stream
+     * @param out Output stream
+     * @throws IOException
+     */
     @Override
     public void write(DataOutput out) throws IOException {
         out.writeInt(size);
@@ -49,6 +72,11 @@ public class DoubleSparseVector extends SparseVector<Double> {
         }
     }
 
+    /**
+     * Initialize the vector from a DataInput stream
+     * @param in Input stream
+     * @throws IOException
+     */
     @Override
     public void readFields(DataInput in) throws IOException {
         size = in.readInt();
@@ -63,6 +91,14 @@ public class DoubleSparseVector extends SparseVector<Double> {
     private final  Matcher lineMatcher = linePattern.matcher("");
     private final Text line = new Text();
 
+    /**
+     * Parses a string and initialize the vector
+     * Fromat accepted:
+     * row [row number]
+     * [elem1] [elem1] [elem3]
+     * @param inputStream inputStream
+     * @throws IOException In case of an invalid file
+     */
     public void fromString(FSDataInputStream inputStream) throws IOException{
         final LineReader in = new LineReader(inputStream);
         int index=0;
