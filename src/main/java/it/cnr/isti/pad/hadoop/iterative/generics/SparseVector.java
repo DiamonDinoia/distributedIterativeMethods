@@ -10,36 +10,66 @@ public abstract class SparseVector<T extends Number> implements Writable{
     protected Map<Integer, T> values;
     protected int size = -1;
 
+    /**
+     * Initialize the vector.
+     * @param size vector dimension
+     * @param nonZeros number of no zero elements if known
+     */
     public SparseVector(int size, int nonZeros) {
         this.values = new HashMap<>(nonZeros);
         this.size=size;
     }
 
+    /**
+     *
+     * @return the number of non zero elements of the vector
+     */
     public SparseVector(int size) {
         this();
         this.size = size;
     }
 
+    /**
+     * Size must be specified subsequently otherwise it throws an error
+     */
     public SparseVector(){
         values = new HashMap<>();
     }
 
+    /**
+     *
+     * @return the size of the vector
+     */
     public int size(){
         return size;
     }
 
+    /**
+     * Set the size of the vector to the specified number
+     * @param size new size of the vector
+     */
     public void setSize(int size) {
         this.size = size;
     }
 
+    /**
+     * Reset the status of the vector and deletes all the values
+     */
     public void reset(){
         size=-1;
         values.clear();
     }
 
+    /**
+     * Inserts a nre element into the vector and returns the previous value
+     * @param index Coordinate of insertion
+     * @param value Value to insert
+     * @return previous value or null
+     */
     public T insert(int index, T value){
         return values.put(index, value);
     }
+
 
     public T get(int index){
         return values.get(index)!=null ? values.get(index) : (T) new Double(0.);

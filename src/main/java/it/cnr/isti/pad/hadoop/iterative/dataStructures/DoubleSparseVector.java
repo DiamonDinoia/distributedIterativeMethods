@@ -16,11 +16,7 @@ import java.util.regex.Pattern;
  * This class implements a sparse vector. For dense vectors use DoubleVector instead.
  */
 public class DoubleSparseVector extends SparseVector<Double> {
-    /**
-     * Initialize the vector.
-     * @param size vector dimension
-     * @param nonZeros number of no zero elements if known
-     */
+
     public DoubleSparseVector(int size, int nonZeros) {
         super(size, nonZeros);
     }
@@ -29,17 +25,12 @@ public class DoubleSparseVector extends SparseVector<Double> {
         super(size);
     }
 
-    /**
-     * Size must be specified subsequently otherwise it throws an error
-     */
+
     public DoubleSparseVector() {
         super();
     }
 
-    /**
-     *
-     * @return the number of non zero elements of the vector
-     */
+
     public int nonZeros(){
         return values.size();
     }

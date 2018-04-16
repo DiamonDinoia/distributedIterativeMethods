@@ -35,14 +35,12 @@ public class DoubleMatrixReader
     protected int index = 0;
 
     protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
-//    protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)(?:\\s+)(\\d+)");
     protected Matcher headerMatcher = null;
     private final Pattern line = Pattern.compile("((-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*)");
     private Matcher lineMatcher = null;
 
     protected boolean readRow() throws IOException{
 
-        //
         // Make sure we get at least one record that starts in this Split
         while (pos < end) {
             currentLine.clear();

@@ -44,14 +44,10 @@ public class MatrixVectorMultiplicationMapper
 
     @Override
     protected void map(LongWritable key, DoubleVector value, Context context) throws IOException, InterruptedException {
-        // Perform the scalar product between vectors and
+        // Perform the scalar product between vectors and send the value to the reducer
         double sum = value.product(b);
         out.set(sum);
         context.write(key, out);
     }
 
-    @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
-        super.cleanup(context);
-    }
 }

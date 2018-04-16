@@ -19,6 +19,7 @@ public class MatrixVectorMultiplicationReducer extends Reducer<LongWritable, Dou
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
+        // Read the matrix size
         int size = context.getConfiguration().getInt("matrixSize",-1);
         if (size==-1){
             LOG.error("Invalid matrix size");
