@@ -1,19 +1,19 @@
 package it.cnr.isti.pad.hadoop.iterative.dataStructures;
 
 import it.cnr.isti.pad.hadoop.iterative.generics.SparseVector;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class implements a sparse vector. The non zero values are stored within an HashMap
+ * This class implements a sparse vector. For dense vectors use DoubleVector instead.
  */
 public class DoubleSparseVector extends SparseVector<Double> {
     /**
@@ -99,7 +99,7 @@ public class DoubleSparseVector extends SparseVector<Double> {
      * @param inputStream inputStream
      * @throws IOException In case of an invalid file
      */
-    public void fromString(FSDataInputStream inputStream) throws IOException{
+    public void fromString(InputStream inputStream) throws IOException{
         final LineReader in = new LineReader(inputStream);
         int index=0;
         while (in.readLine(line)>0) {

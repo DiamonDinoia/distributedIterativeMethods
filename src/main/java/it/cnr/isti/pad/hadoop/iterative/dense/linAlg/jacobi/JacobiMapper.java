@@ -20,13 +20,16 @@ public class JacobiMapper extends MatrixVectorMultiplicationMapper {
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
+        // Get the matrix size from the configuration
         int size = context.getConfiguration().getInt("matrixSize",-1);
         if (size==-1){
             LOG.error("Invalid matrix size");
             throw new ConfigurationRuntimeException("Invalid matrix size");
         }
+        // Update the size of the vector
         if (x.get()==null || x.size()!=size)
             x.set(new double[size]);
+        // Read the vector form the disk
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("x");
         Path path = new Path(filename);
@@ -35,10 +38,12 @@ public class JacobiMapper extends MatrixVectorMultiplicationMapper {
         inputStream.close();
         super.setup(context);
     }
+    // Avoid allocating/deallocating objects
     private final DoubleWritable out = new DoubleWritable();
 
     @Override
     protected void map(LongWritable key, DoubleVector row, Context context) throws IOException, InterruptedException {
+        // Plain implementation of the Jacobi algorithm
         double sum = row.product(x);
         sum -= (row.get((int)key.get()) * (x.get((int)key.get())));
         sum = b.get((int) key.get()) - sum;

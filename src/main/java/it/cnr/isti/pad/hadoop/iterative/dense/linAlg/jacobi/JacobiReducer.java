@@ -23,7 +23,7 @@ public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
 
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(Context context) throws IOException {
         int size = context.getConfiguration().getInt("matrixSize",-1);
         if (size==-1){
             LOG.error("Invalid matrix size");
@@ -31,7 +31,7 @@ public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
         }
         if (oldX.get()==null || oldX.size()!=size)
             oldX.set(new double[size]);
-
+        // read the file containing the solution at the previous iteration
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("x");
         Path path = new Path(filename);
@@ -43,7 +43,8 @@ public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
     }
 
     @Override
-    protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
+    protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) {
+        // Recompose the solution vector and compute the convergence
         int index = (int) key.get();
         for (DoubleWritable value : values) {
             x.set((int)key.get(), value.get());
@@ -53,6 +54,7 @@ public class JacobiReducer  extends MatrixVectorMultiplicationReducer {
 
     @Override
     protected void cleanup(Context context) throws IOException, InterruptedException {
+        // Save the solution on the disk
         super.cleanup(context);
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("error");
