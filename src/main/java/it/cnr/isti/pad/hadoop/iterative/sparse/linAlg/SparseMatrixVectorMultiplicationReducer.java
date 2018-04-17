@@ -18,7 +18,8 @@ public class SparseMatrixVectorMultiplicationReducer  extends Reducer<LongWritab
 
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(Context context) throws IOException {
+        // Read the matrix size from the configuration
         x.reset();
         x.setSize(context.getConfiguration().getInt("matrixSize",-1));
         if (x.size()==1) {
@@ -28,7 +29,8 @@ public class SparseMatrixVectorMultiplicationReducer  extends Reducer<LongWritab
     }
 
     @Override
-    protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
+    protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) {
+        // Gather all elements
         for (DoubleWritable value : values) {
             x.insert((int)key.get(),value.get());
         }
@@ -36,6 +38,7 @@ public class SparseMatrixVectorMultiplicationReducer  extends Reducer<LongWritab
 
     @Override
     protected void cleanup(Context context) throws IOException, InterruptedException {
+        // Save the vector
         context.write(NullWritable.get(), x);
     }
 }

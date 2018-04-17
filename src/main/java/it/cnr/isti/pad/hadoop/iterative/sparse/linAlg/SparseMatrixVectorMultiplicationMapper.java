@@ -23,6 +23,7 @@ public class SparseMatrixVectorMultiplicationMapper extends Mapper<LongWritable,
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
+        // Read the matrix size from the configuration
         b.setSize(context.getConfiguration().getInt("matrixSize",-1));
         if (b.size()==-1) throw new InvalidStateException("matrix size unknown");
         final FileSystem fs =  FileSystem.get(context.getConfiguration());
@@ -37,6 +38,7 @@ public class SparseMatrixVectorMultiplicationMapper extends Mapper<LongWritable,
 
     @Override
     protected void map(LongWritable key, DoubleSparseVector value, Context context) throws IOException, InterruptedException {
+        // Perform the scalar product between two vectors
         double sum = value.product(b);
         out.set(sum);
         if (sum!=0.)
