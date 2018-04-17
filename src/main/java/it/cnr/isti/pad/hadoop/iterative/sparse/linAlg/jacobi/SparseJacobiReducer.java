@@ -11,7 +11,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 
@@ -22,7 +21,8 @@ public class SparseJacobiReducer  extends SparseMatrixVectorMultiplicationReduce
     private static final Log LOG = LogFactory.getLog(SparseJacobiReducer.class);
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(Context context) throws IOException {
+        // Read the matrix size from the from the configuration
         int size = context.getConfiguration().getInt("matrixSize",-1);
         if (size==-1){
             LOG.error("Invalid matrix size");
@@ -30,22 +30,25 @@ public class SparseJacobiReducer  extends SparseMatrixVectorMultiplicationReduce
         }
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("x");
+        // Basically read all the values form the previous iteration and copy it to the new vector
+        // So if some value is frozen is not lost
         oldX.setSize(size);
         Path path = new Path(filename);
         FSDataInputStream inputStream = fs.open(path);
         oldX.fromString(inputStream);
-        x.set(oldX);
+        x.setAll(oldX);
         errorVector.setSize(size);
         fs.close();
     }
 
     @Override
-    protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
+    protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) {
+        //
         int index = (int) key.get();
         for (DoubleWritable value : values) {
             if (value.get()!=0.)
-                x.set((int)key.get(), value.get());
-            errorVector.set(index, Math.abs(value.get() - oldX.get(index)));
+                x.setAll((int)key.get(), value.get());
+            errorVector.setAll(index, Math.abs(value.get() - oldX.get(index)));
         }
     }
 

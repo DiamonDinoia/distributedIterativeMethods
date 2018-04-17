@@ -53,7 +53,7 @@ public class DoubleSparseMatrixReader  extends MatrixReader<LongWritable, Double
                 return false;
             }
 
-            // Line is read, new position is set
+            // Line is read, new position is setAll
             pos += newSize;
 
             if (newSize > maxLineLength) {

@@ -119,7 +119,7 @@ public abstract class MatrixReader<K,V> extends RecordReader<K,V>{
                 return false;
             }
 
-            // Line is read, new position is set
+            // Line is read, new position is setAll
             pos += newSize;
 
             if (newSize > maxLineLength) {

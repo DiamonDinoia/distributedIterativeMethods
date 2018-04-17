@@ -4,19 +4,9 @@ import com.sun.org.apache.commons.logging.Log;
 import com.sun.org.apache.commons.logging.LogFactory;
 import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
 import it.cnr.isti.pad.hadoop.iterative.generics.MatrixReader;
-import org.apache.commons.configuration.ConfigurationRuntimeException;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.apache.hadoop.util.LineReader;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 
-import javax.naming.ConfigurationException;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +46,7 @@ public class DoubleMatrixReader
                 return false;
             }
 
-            // Line is read, new position is set
+            // Line is read, new position is setAll
             pos += newSize;
 
             if (newSize > maxLineLength) {

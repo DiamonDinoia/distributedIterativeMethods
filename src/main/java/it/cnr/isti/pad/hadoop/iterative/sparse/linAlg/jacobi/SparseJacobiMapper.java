@@ -9,7 +9,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
 
@@ -20,11 +19,13 @@ public class SparseJacobiMapper extends SparseMatrixVectorMultiplicationMapper {
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
+        // Get the matrix size from the context
         int size = context.getConfiguration().getInt("matrixSize",-1);
         if (size==-1){
             LOG.error("Invalid matrix size");
             throw new ConfigurationRuntimeException("Invalid matrix size");
         }
+        // Read the solution vector from the previous iteration
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("x");
         Path path = new Path(filename);
@@ -37,6 +38,7 @@ public class SparseJacobiMapper extends SparseMatrixVectorMultiplicationMapper {
 
     @Override
     protected void map(LongWritable key, DoubleSparseVector row, Context context) throws IOException, InterruptedException {
+        // Perform the Jacobi algorithm
         double sum = row.product(x);
         sum -= (row.get((int)key.get()) * (x.get((int)key.get())));
         sum = b.get((int) key.get()) - sum;

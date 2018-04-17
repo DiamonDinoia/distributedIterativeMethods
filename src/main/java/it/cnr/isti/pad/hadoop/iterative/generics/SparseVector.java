@@ -70,16 +70,34 @@ public abstract class SparseVector<T extends Number> implements Writable{
         return values.put(index, value);
     }
 
-
+    /**
+     * Returns the value in position index
+     * @param index value position
+     * @return value
+     */
     public T get(int index){
         return values.get(index)!=null ? values.get(index) : (T) new Double(0.);
     }
 
-    public T set(int index, T value){
-        return values.put(index,value);
+    /**
+     * Sets the value in position index and returns the previous value
+     * @param index vector position
+     * @param value value to setAll
+     * @return previous value
+     */
+    public T setAll(int index, T value){
+        T previous = values.put(index,value);
+        if (previous==null){
+            return (T) new Double(0.);
+        }
+        return previous;
     }
 
-    public void set(SparseVector<T> vector){
+    /**
+     * set all the parameters from a vector
+     * @param vector source of the values
+     */
+    public void setAll(SparseVector<T> vector){
         this.size = vector.size;
         values.clear();
         values.putAll(vector.values);

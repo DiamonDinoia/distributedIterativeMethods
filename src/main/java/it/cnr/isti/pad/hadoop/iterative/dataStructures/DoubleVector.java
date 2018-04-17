@@ -19,7 +19,7 @@ public class DoubleVector implements Writable{
     private double[] values;
 
     /**
-     * Initialized an empty vector. Values must be set subsequently
+     * Initialized an empty vector. Values must be setAll subsequently
      */
     public DoubleVector(){}
 
