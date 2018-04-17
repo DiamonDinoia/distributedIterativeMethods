@@ -22,25 +22,29 @@ public class SparseJacobiReducer  extends SparseMatrixVectorMultiplicationReduce
     private static final Log LOG = LogFactory.getLog(SparseJacobiReducer.class);
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(Context context) throws IOException {
+        // Read the matrix size from the configuration
         int size = context.getConfiguration().getInt("matrixSize",-1);
         if (size==-1){
             LOG.error("Invalid matrix size");
             throw new ConfigurationRuntimeException("Invalid matrix size");
         }
+        // Read the solution vector from the previous iteration
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("x");
         oldX.setSize(size);
         Path path = new Path(filename);
         FSDataInputStream inputStream = fs.open(path);
         oldX.fromString(inputStream);
+        // Initialize the current solution vector from the previous
         x.set(oldX);
         errorVector.setSize(size);
         fs.close();
     }
 
     @Override
-    protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
+    protected void reduce(LongWritable key, Iterable<DoubleWritable> values, Context context) {
+        // Rebuild the solution vector
         int index = (int) key.get();
         for (DoubleWritable value : values) {
             if (value.get()!=0.)
@@ -51,6 +55,7 @@ public class SparseJacobiReducer  extends SparseMatrixVectorMultiplicationReduce
 
     @Override
     protected void cleanup(Context context) throws IOException, InterruptedException {
+        // Write the error vector in order to freeze some values if converged
         super.cleanup(context);
         FileSystem fs =  FileSystem.get(context.getConfiguration());
         String filename = context.getConfiguration().get("error");
