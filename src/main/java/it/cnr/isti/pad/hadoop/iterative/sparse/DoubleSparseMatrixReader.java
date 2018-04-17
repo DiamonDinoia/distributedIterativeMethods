@@ -14,18 +14,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DoubleSparseMatrixReader  extends MatrixReader<LongWritable, DoubleSparseVector> {
-    private static final Log LOG = LogFactory.getLog(DoubleSparseMatrixReader.class);
+    protected static final Log LOG = LogFactory.getLog(DoubleSparseMatrixReader.class);
 
-    private LongWritable key = new LongWritable();
+    protected LongWritable key = new LongWritable();
     private DoubleSparseVector value = new DoubleSparseVector();
 
-    private static final String rowMarker = "row";
+    protected static final String rowMarker = "row";
 
-    private Text currentLine = new Text();
-    private int index = 0;
+    protected Text currentLine = new Text();
+    protected int index = 0;
 
-    private final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
-    private Matcher headerMatcher = null;
+    protected final Pattern header = Pattern.compile("(row)(?:\\s+)(\\d+)");
+    protected Matcher headerMatcher = null;
     private final Pattern line = Pattern.compile("(-?[0-9]+(?:[,.][0-9]*)?)(?:\\s|\\r)*");
     private Matcher lineMatcher = null;
 
@@ -35,7 +35,7 @@ public class DoubleSparseMatrixReader  extends MatrixReader<LongWritable, Double
         value.setSize(nValues);
     }
 
-    private boolean readRow() throws IOException{
+    protected boolean readRow() throws IOException{
 
         //
         // Make sure we get at least one record that starts in this Split
@@ -84,7 +84,7 @@ public class DoubleSparseMatrixReader  extends MatrixReader<LongWritable, Double
         return true;
     }
 
-    private int newSize;
+    protected int newSize;
 
     public boolean nextKeyValue() throws IOException {
 //        nValues=-1;

@@ -1,7 +1,7 @@
 package it.cnr.isti.pad.hadoop.iterative;
 
 import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleSparseVector;
-import it.cnr.isti.pad.hadoop.iterative.sparse.DoubleSparseMatrixInputFormat;
+import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.jacobi.DoubleSparseJacobiMatrixInputFormat;
 import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.jacobi.SparseJacobiMapper;
 import it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.jacobi.SparseJacobiReducer;
 import it.cnr.isti.pad.hadoop.iterative.utils.MatrixGenerator;
@@ -75,7 +75,7 @@ public class SparseJacobi {
 
         job.setJarByClass(it.cnr.isti.pad.hadoop.iterative.SparseJacobi.class);
 
-        job.setInputFormatClass(DoubleSparseMatrixInputFormat.class);
+        job.setInputFormatClass(DoubleSparseJacobiMatrixInputFormat.class);
 
 
         job.setOutputKeyClass(LongWritable.class);

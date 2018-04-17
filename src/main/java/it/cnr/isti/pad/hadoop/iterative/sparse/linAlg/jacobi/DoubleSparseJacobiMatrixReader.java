@@ -1,8 +1,7 @@
-package it.cnr.isti.pad.hadoop.iterative.dense.linAlg.jacobi;
+package it.cnr.isti.pad.hadoop.iterative.sparse.linAlg.jacobi;
 
-
-import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleVector;
-import it.cnr.isti.pad.hadoop.iterative.dense.DoubleMatrixReader;
+import it.cnr.isti.pad.hadoop.iterative.dataStructures.DoubleSparseVector;
+import it.cnr.isti.pad.hadoop.iterative.sparse.DoubleSparseMatrixReader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -12,10 +11,9 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import java.io.IOException;
 
-public class DoubleJacobiMatrixReader
-        extends DoubleMatrixReader {
+public class DoubleSparseJacobiMatrixReader extends DoubleSparseMatrixReader{
 
-    private DoubleVector error = new DoubleVector();
+    private DoubleSparseVector error = new DoubleSparseVector();
     private double threshold;
 
     @Override
@@ -30,10 +28,12 @@ public class DoubleJacobiMatrixReader
         fileIn.close();
     }
 
+
     public boolean nextKeyValue() throws IOException {
+//        nValues=-1;
         index = 0;
         //read until reaching the now row marker
-        while(pos < end){
+        while (pos < end) {
             currentLine.clear();
             // Read first line and store its content to "currentLine"
             newSize = in.readLine(currentLine, maxLineLength,
@@ -57,32 +57,27 @@ public class DoubleJacobiMatrixReader
                         + (pos - newSize));
                 return false;
             }
-            if(headerMatcher==null)
+            if (headerMatcher == null)
                 headerMatcher = header.matcher(currentLine.toString());
             else headerMatcher.reset(currentLine.toString());
 
-            if(!headerMatcher.find()) continue;
+            if (!headerMatcher.find()) continue;
 
-            if(!headerMatcher.group(1).equals(rowMarker)){
+            if (!headerMatcher.group(1).equals(rowMarker)) {
                 LOG.error("Invalid file " + fileName);
                 throw new IOException("Invalid file " + fileName);
             }
-            try{
+            try {
                 key.set(Long.valueOf(headerMatcher.group(2)));
                 if(error.get((int)key.get()) < threshold)
                     return false;
-                if(values==null || values.length!=nValues)
-                    values = new double[nValues];
                 break;
-            } catch (NumberFormatException _){
+            } catch (NumberFormatException _) {
                 //checking file correctness
                 LOG.error("Invalid file " + fileName);
                 throw new IOException("Invalid file" + fileName);
             }
         }
-        if(!readRow()) return false;
-        value.set(values);
-        return index==nValues;
+        return readRow() && index == nValues;
     }
-
 }
