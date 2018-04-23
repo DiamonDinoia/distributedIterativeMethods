@@ -16,13 +16,13 @@ public class DoubleJacobiMatrixReader
         extends DoubleMatrixReader {
 
     private DoubleVector error = new DoubleVector();
-    private double threshold;
+    private double threshold = 0.f;
 
     @Override
     public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException {
         super.initialize(inputSplit, context);
         Configuration job = context.getConfiguration();
-        threshold = job.getFloat("threshold", 0.f);
+        threshold = Double.valueOf(job.get("threshold"));
         FileSystem fs = FileSystem.get(job);
         final Path file = new Path( job.get("error"));
         FSDataInputStream fileIn = fs.open(file);
@@ -69,8 +69,9 @@ public class DoubleJacobiMatrixReader
             }
             try{
                 key.set(Long.valueOf(headerMatcher.group(2)));
-                if(error.get((int)key.get()) < threshold)
+                if(error.get((int)key.get()) <= threshold){
                     return false;
+                }
                 if(values==null || values.length!=nValues)
                     values = new double[nValues];
                 break;
