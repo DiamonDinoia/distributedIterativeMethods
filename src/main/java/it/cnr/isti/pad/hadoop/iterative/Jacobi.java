@@ -41,7 +41,6 @@ public class Jacobi {
         Path output =new Path(args[1]);
         FileSystem hdfs = FileSystem.get(conf);
 
-//        DoubleVector solution = new DoubleVector(new double[]{0.6, 2.27272, -1.1, 1.875});
         DoubleVector solution = new DoubleVector(new double[]{0.0, 0., 0., 0.});
         FSDataOutputStream out =  hdfs.create(new Path(x));
         out.writeBytes(solution.toString());
